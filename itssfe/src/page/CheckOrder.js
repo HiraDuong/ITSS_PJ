@@ -110,7 +110,9 @@ const CheckOrder = () => {
                         <th>Quantity</th>
                         <th>Unit</th>
                         <th>Delivery Means</th>
+                        <th>Delivery Date</th>
                         <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -127,6 +129,12 @@ const CheckOrder = () => {
                                 <td>{order.quantity}</td>
                                 <td>{order.unit}</td>
                                 <td>{order.deliveryMeans}</td>
+                                <td>
+                                {typeof order.deliveryDate === 'string' 
+                                    ? new Date(order.deliveryDate).toISOString().split('T')[0] 
+                                    : order.deliveryDate.toISOString().split('T')[0]}
+                                </td>
+
                                 <td>{order.status}</td>
                                 <td>
                                     <button onClick={() => handleOrderStatusUpdate(order.orderListId)}>Đã gửi</button>

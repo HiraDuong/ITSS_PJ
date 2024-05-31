@@ -5,10 +5,13 @@ import com.example.itsspj.model.ResponseObject;
 import com.example.itsspj.model.Site;
 import com.example.itsspj.repositories.InventoryRepository;
 import com.example.itsspj.repositories.SiteRepository;
+import org.apache.juli.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -74,8 +77,64 @@ ResponseEntity<ResponseObject> getInventoryAndSitesByMerchandiseCode(@PathVariab
         return ResponseEntity.status(404).body(new ResponseObject("Inventory not found with merchandiseCode = " + merchandiseCode, "error", null));
     }
 }
+//get inventories and site by merchandiseCode and filter by inStockQuantity and deliverdate
+    @GetMapping("/merchandiseCode/inStockQuantity/deliverDate/quantityOrder/{merchandiseCode}/{deliverDate}/{quantityOrder}")
+    ResponseEntity<ResponseObject> getInventoryAndSitesByMerchandiseCodeAndFilterByInStockQuantityAndDeliverDate(@PathVariable Integer merchandiseCode, @PathVariable String deliverDate, @PathVariable Integer quantityOrder) {
+        List<Inventory> inventories = repository.findByMerchandiseCode(merchandiseCode);
+        List<Map<String, Object>> inventoryWithSites = new ArrayList<>();
 
+        if (!inventories.isEmpty()) {
+            for (Inventory inventory : inventories) {
+                Optional<Site> site = siteRepository.findById(inventory.getSiteCode());
+                site.ifPresent(s -> {
+                    Map<String, Object> inventoryWithSite = new HashMap<>();
+                    inventoryWithSite.put("inventory", inventory);
+                    inventoryWithSite.put("site", s);
+                    inventoryWithSites.add(inventoryWithSite);
+                });
+            }
 
+            try {
+                Date deliverDateObj = new SimpleDateFormat("yyyy-MM-dd").parse(deliverDate);
+                long days = (deliverDateObj.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+
+                inventoryWithSites.removeIf(inventoryWithSite -> {
+                    Site site = (Site) inventoryWithSite.get("site");
+                    Inventory inventory = (Inventory) inventoryWithSite.get("inventory");
+                    return inventory.getInStockQuantity() <= 0 || (site.getByAir() > days && site.getByShip() > days);
+                });
+            } catch (ParseException e) {
+                return ResponseEntity.status(400).body(new ResponseObject("Invalid date format", "error", null));
+            }
+//            không có site đáp ứng đủ số lượng hàng trong kho và thời gian giao hàng
+            if (inventoryWithSites.isEmpty()) {
+                return ResponseEntity.status(404).body(new ResponseObject("No inventory available for the given date with merchandise code: "+ merchandiseCode.toString(), "error", null));
+            } else {
+//                tổng số hàng của các kho không đủ đáp ứng
+                int totalInStockQuantity = inventoryWithSites.stream().mapToInt(inventoryWithSite -> ((Inventory) inventoryWithSite.get("inventory")).getInStockQuantity()).sum();
+                if(totalInStockQuantity < quantityOrder){
+                    return ResponseEntity.status(404).body(new ResponseObject("Not enough inventory available for the given quantity order with merchandise code: "+ merchandiseCode.toString(), "error", null));
+                }
+//                săp xếp kết quả trả về
+//                by ship > by air
+                inventoryWithSites.sort((o1, o2) -> {
+                    Site site1 = (Site) o1.get("site");
+                    Site site2 = (Site) o2.get("site");
+                    return site2.getByShip() - site1.getByShip();
+                });
+//                by inStockQuantity
+                inventoryWithSites.sort((o1, o2) -> {
+                    Inventory inventory1 = (Inventory) o1.get("inventory");
+                    Inventory inventory2 = (Inventory) o2.get("inventory");
+                    return inventory2.getInStockQuantity() - inventory1.getInStockQuantity();
+                });
+//
+                return ResponseEntity.status(200).body(new ResponseObject("Inventory found", "success", inventoryWithSites));
+            }
+        } else {
+            return ResponseEntity.status(404).body(new ResponseObject("Inventory not found with merchandiseCode = " + merchandiseCode, "error", null));
+        }
+    }
     //    add inventory
   @PostMapping("")
     ResponseEntity<ResponseObject> addInventory(@RequestBody Inventory inventory){

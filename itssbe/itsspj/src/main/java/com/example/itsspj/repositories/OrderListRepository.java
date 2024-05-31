@@ -9,4 +9,6 @@ public interface OrderListRepository extends JpaRepository<OrderList, Integer> {
     List<OrderList> findBySiteCode(Integer siteCode);
 
     List<OrderList> findBySiteCodeAndStatus(Integer siteCode, int i);
+
+    List<OrderList> findByStatus(int i);
 }

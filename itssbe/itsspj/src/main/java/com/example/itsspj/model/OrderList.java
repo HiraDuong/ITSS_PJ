@@ -5,6 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import java.util.Date;
+
 @Entity
 public class OrderList {
     @Id
@@ -16,20 +18,30 @@ public class OrderList {
     private int quantity;
     private String unit;
     private String deliveryMeans;
+    private Date deliveryDate;
     private int status = 0;
 
-    public OrderList(int orderListId, int merchandiseCode, int siteCode, int quantity, String unit, String deliveryMeans, int status) {
+    public OrderList(int status, int orderListId, int siteCode, int merchandiseCode, int quantity, String unit, String deliveryMeans, Date deliveryDate) {
+        this.status = status;
         this.orderListId = orderListId;
-        this.merchandiseCode = merchandiseCode;
         this.siteCode = siteCode;
+        this.merchandiseCode = merchandiseCode;
         this.quantity = quantity;
         this.unit = unit;
         this.deliveryMeans = deliveryMeans;
-        this.status = status;
+        this.deliveryDate = deliveryDate;
     }
 
     public OrderList() {
 
+    }
+
+    public Date getDeliveryDate() {
+        return deliveryDate;
+    }
+
+    public void setDeliveryDate(Date deliveryDate) {
+        this.deliveryDate = deliveryDate;
     }
 
     public int getOrderListId() {

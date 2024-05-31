@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './SiteInventoryItem.css';
 import { apiUrl } from '../../config/BeApiEndpoint';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
+import { useLocation } from 'react-router-dom';
 
 const SiteInventoryItem = ({ data }) => {
   const [stompClient, setStompClient] = useState(null);
   const [expandedSite, setExpandedSite] = useState(null);
   const [orderForm, setOrderForm] = useState({ show: false, item: null });
+  const location = useLocation();
+
+  const merchandiseList = useMemo(() => location.state?.merchandiseList || [], [location.state?.merchandiseList]);
 
   useEffect(() => {
     // Kết nối tới server WebSocket qua STOMP
@@ -63,7 +67,7 @@ const SiteInventoryItem = ({ data }) => {
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-    const { quantityOrdered, deliveryMeans } = event.target.elements;
+    const { quantityOrdered, deliveryMeans, deliveryDate } = event.target.elements;
 
     try {
       const response = await fetch(`${apiUrl}/OrderList/siteCode/${orderForm.item.site.site_code}`, {
@@ -76,7 +80,8 @@ const SiteInventoryItem = ({ data }) => {
           "merchandiseCode": orderForm.item.inventory.merchandiseCode,
           "quantity": quantityOrdered.value,
           "unit": orderForm.item.inventory.unit,
-          "deliveryMeans": deliveryMeans.value
+          "deliveryMeans": deliveryMeans.value,
+          "deliveryDate": deliveryDate.value
         })
       });
 
@@ -104,6 +109,15 @@ const SiteInventoryItem = ({ data }) => {
 
   const handleCloseForm = () => {
     setOrderForm({ show: false, item: null });
+  };
+
+  const getDeliveryDate = (merchandiseCode) => {
+    const merchandise = merchandiseList.find(item => item.merchandise_code === merchandiseCode);
+    return merchandise ? merchandise.deliveryDate : new Date().toISOString().split('T')[0];
+  };
+  const getQuantity = (merchandiseCode) => {
+    const merchandise = merchandiseList.find(item => item.merchandise_code === merchandiseCode);
+    return merchandise ? merchandise.quantity : 1;
   };
 
   return (
@@ -171,12 +185,21 @@ const SiteInventoryItem = ({ data }) => {
             </div>
             <div className='order-form'>
               <label>Quantity ordered: </label>
-              <input type='number' name='quantityOrdered' required />
+              <input type='number' name='quantityOrdered' 
+              defaultValue={getQuantity(orderForm.item.inventory.merchandiseCode)}
+              max={orderForm.item.inventory.inStockQuantity}
+              required />
               <label>Delivery means: </label>
               <select name='deliveryMeans' required>
                 <option value='By Ship'>By Ship</option>
                 <option value='By Air'>By Air</option>
               </select>
+              </div>
+              <div>
+              <label>Delivery Date: </label>
+              <input type='date' name='deliveryDate' 
+              defaultValue={getDeliveryDate(orderForm.item.inventory.merchandiseCode)}
+              required />
               <button type='submit'>Submit</button>
             </div>
           </form>
