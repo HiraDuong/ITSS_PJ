@@ -19,8 +19,8 @@ public class CartController {
     @GetMapping("")
     List<OrderList> getAllCart(){
         List<OrderList> orderLists = repository.findAll();
-//        sort by delivery date and status
-        orderLists.sort(Comparator.comparing(OrderList::getDeliveryDate).thenComparing(OrderList::getStatus));
+//        sort by status and delivery date
+        orderLists.sort(Comparator.comparing(OrderList::getStatus).thenComparing(OrderList::getDeliveryDate));
         return orderLists;
     }
 //    get all Cart with status value
@@ -30,9 +30,17 @@ public class CartController {
         if (!orderLists.isEmpty()) {
             return ResponseEntity.status(200).body(new ResponseObject("Cart found", "success", orderLists));
         } else {
+            if (status == 0)
+                return ResponseEntity.status(404).body(new ResponseObject("Cart not found with status = " + status, "error", null));
+            else if (status == 1)
+                return ResponseEntity.status(200).body(new ResponseObject("Không có đơn nào chưa kiểm", "error", null));
+            else if (status == 2)
+                return ResponseEntity.status(404).body(new ResponseObject("Cart not found with status = " + status, "error", null));
+            else
             return ResponseEntity.status(404).body(new ResponseObject("Cart not found with status = " + status, "error", null));
         }
     }
+
 //    update hủy hàng orderedListId
     @PutMapping("/updateStatus/{orderedListId}")
     ResponseEntity<ResponseObject> updateCartStatus(@PathVariable Integer orderedListId) {
@@ -41,6 +49,18 @@ public class CartController {
             orderListData.setStatus(3);
             repository.save(orderListData);
             return ResponseEntity.status(200).body(new ResponseObject("Cart updated", "success", orderListData));
+        } else {
+            return ResponseEntity.status(404).body(new ResponseObject("Cart not found with id = " + orderedListId, "error", null));
+        }
+    }
+//    update kiểm hàng orderedListId
+    @PutMapping("/checkInventory/{orderedListId}")
+    ResponseEntity<ResponseObject> updateCartCheck(@PathVariable Integer orderedListId) {
+        OrderList orderListData = repository.findById(orderedListId).orElse(null);
+        if (orderListData != null) {
+            orderListData.setStatus(2);
+            repository.save(orderListData);
+            return ResponseEntity.status(200).body(new ResponseObject("Đơn hàng được kiểm thành công", "success", orderListData));
         } else {
             return ResponseEntity.status(404).body(new ResponseObject("Cart not found with id = " + orderedListId, "error", null));
         }

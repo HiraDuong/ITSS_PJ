@@ -107,6 +107,7 @@ ResponseEntity<ResponseObject> getInventoryAndSitesByMerchandiseCode(@PathVariab
                 return ResponseEntity.status(400).body(new ResponseObject("Invalid date format", "error", null));
             }
 //            không có site đáp ứng đủ số lượng hàng trong kho và thời gian giao hàng
+
             if (inventoryWithSites.isEmpty()) {
                 return ResponseEntity.status(404).body(new ResponseObject("No inventory available for the given date with merchandise code: "+ merchandiseCode.toString(), "error", null));
             } else {

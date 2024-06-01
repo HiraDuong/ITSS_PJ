@@ -39,7 +39,7 @@ public class OrderListController {
     ResponseEntity<ResponseObject> getOrderListBySiteCodeAndStatus(@PathVariable Integer siteCode){
         List<OrderList> orderLists = repository.findBySiteCodeAndStatus(siteCode, 0);
         if (!orderLists.isEmpty()) {
-//         
+//
             return ResponseEntity.status(200).body(new ResponseObject("OrderList found", "success", orderLists));
         } else {
             return ResponseEntity.status(200).body(new ResponseObject("Không có đơn nào chưa kiểm " + siteCode, "success", null));

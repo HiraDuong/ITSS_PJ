@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import "../css/PageGlobal.css";
 import "../css/CheckOrder.css";
 import { useUser } from '../UserContext';
@@ -11,39 +11,7 @@ const CheckOrder = () => {
     const [orders, setOrders] = useState([]);
     const [stompClient, setStompClient] = useState(null);
 
-    useEffect(() => {
-        // Thiết lập kết nối STOMP
-        const socket = new SockJS('http://localhost:8080/itss');
-        const stompClient = new Client({
-            webSocketFactory: () => socket,
-            debug: (str) => {
-                console.log(new Date(), str);
-            },
-            reconnectDelay: 5000,
-            heartbeatIncoming: 4000,
-            heartbeatOutgoing: 4000,
-        });
-
-        stompClient.onConnect = () => {
-            console.log('Connected to WebSocket');
-            stompClient.subscribe('/topic/orders', (message) => {
-                console.log('Received message:', message.body);
-                // Khi nhận được thông báo về đơn hàng mới, gọi lại hàm fetchOrders để tải lại danh sách đơn hàng
-                fetchOrders();
-            });
-        };
-
-        stompClient.activate();
-        setStompClient(stompClient);
-
-        return () => {
-            if (stompClient) {
-                stompClient.deactivate();
-            }
-        };
-    }, []);
-
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             const response = await fetch(`${apiUrl}/OrderList/siteCode/status/${user.siteCode}`, {
                 method: 'GET',
@@ -57,15 +25,38 @@ const CheckOrder = () => {
             }
 
             const data = await response.json();
-            setOrders(data.data);
+            setOrders(data.data || []);
         } catch (error) {
             console.error('Error fetching orders:', error);
         }
-    };
+    }, [user.siteCode]);
+
+    useEffect(() => {
+        const socket = new SockJS('http://localhost:8080/itss');
+        const client = new Client({
+            webSocketFactory: () => socket,
+            debug: (str) => console.log(new Date(), str),
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+        });
+
+        client.onConnect = () => {
+            console.log('Connected to WebSocket');
+            client.subscribe('/topic/orders', () => {
+                fetchOrders();
+            });
+        };
+
+        client.activate();
+        setStompClient(client);
+
+        return () => client.deactivate();
+    }, [fetchOrders]);
 
     useEffect(() => {
         fetchOrders();
-    }, []);
+    }, [fetchOrders]);
 
     const handleOrderStatusUpdate = async (orderListId) => {
         try {
@@ -79,11 +70,14 @@ const CheckOrder = () => {
             if (!response.ok) {
                 throw new Error('Failed to update order status.');
             }
-            stompClient.publish({
-                destination: '/topic/orders',
-                body: 'New order has been updated',
-            
-            })
+
+            if (stompClient) {
+                stompClient.publish({
+                    destination: '/topic/orders',
+                    body: 'New order has been updated',
+                });
+            }
+
             alert('Đã cập nhật trạng thái đơn hàng!');
         } catch (error) {
             console.error('Error updating order status:', error);
@@ -116,9 +110,9 @@ const CheckOrder = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {!orders || orders.length === 0 ? (
+                    {orders.length === 0 ? (
                         <tr>
-                            <td colSpan='7'>No orders</td>
+                            <td colSpan='9'>No orders</td>
                         </tr>
                     ) : (
                         orders.map((order, index) => (
@@ -130,11 +124,10 @@ const CheckOrder = () => {
                                 <td>{order.unit}</td>
                                 <td>{order.deliveryMeans}</td>
                                 <td>
-                                {typeof order.deliveryDate === 'string' 
-                                    ? new Date(order.deliveryDate).toISOString().split('T')[0] 
-                                    : order.deliveryDate.toISOString().split('T')[0]}
+                                    {typeof order.deliveryDate === 'string'
+                                        ? new Date(order.deliveryDate).toISOString().split('T')[0]
+                                        : order.deliveryDate.toISOString().split('T')[0]}
                                 </td>
-
                                 <td>{order.status}</td>
                                 <td>
                                     <button onClick={() => handleOrderStatusUpdate(order.orderListId)}>Đã gửi</button>

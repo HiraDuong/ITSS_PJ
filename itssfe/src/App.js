@@ -17,6 +17,7 @@ import SiteInventoryItem from './components/SiteInventoryItems/SiteInventoryItem
 import data from './config/tesData';
 import CheckOrder from './page/CheckOrder';
 import Cart from './page/Cart';
+import Inventory from './page/Inventory';
 function App() {
   return (
     <div className="App">
@@ -35,6 +36,8 @@ function App() {
             <Route path="/checkOrder" element={<CheckOrder />} />
             {/*Cart  */}
             <Route path="/cart" element={<Cart />} />
+            {/* Inventory */}
+            <Route path="/inventory" element={<Inventory />} />
           {/* test component */}
             <Route path="/test" element={<SiteInventoryItem data = {data}/>} />
         

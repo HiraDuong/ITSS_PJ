@@ -31,13 +31,13 @@ h1, h2 {
     margin: 10px;
 }
 .add-btn{
-    background-color: #4CAF50;
+    background-color: #007f6e;
 }
 .delete-btn{
-    background-color: #c6382e;
+    background-color: #9e5651;
 }
 .add-btn:hover{
-    background-color: #0fff1b;
+    background-color: #4ba250;
 }
 .delete-btn:hover{
     background-color: #f91505;
