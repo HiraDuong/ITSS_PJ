@@ -3,6 +3,7 @@ import "../css/PageGlobal.css";
 import "../css/Inventory.css";
 import { useUser } from '../UserContext';
 import { apiUrl } from '../config/BeApiEndpoint';
+import InventorySite from '../components/InventorySite/InventorySite';
 
 const Inventory = () => {
     const { user } = useUser();
@@ -34,26 +35,50 @@ const Inventory = () => {
         }
     };
 
-    // check inventory 
-    const checkInventory = async (orderListId) => {
+    const checkInventory = async (item) => {
         try {
-            const response = await fetch(`${apiUrl}/Cart/checkInventory/${orderListId}`, {
+            // Thay đổi trạng thái đơn hàng thành 2
+            const response = await fetch(`${apiUrl}/Cart/checkInventory/${item.orderListId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
-
+    
             if (!response.ok) {
-                setErrorMessage('Failed to update order status.');
                 throw new Error('Failed to update order status.');
             }
-
+    
             const data = await response.json();
             if (data.status === "error") {
-                setErrorMessage(data.message);
+                throw new Error(data.message);
             } else {
-                alert(`Kiểm hàng đơn hàng ${orderListId} thành công!`);
+                alert(`Kiểm hàng đơn hàng ${item.orderListId} thành công!`);
+            }
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            setErrorMessage('Error updating order status.');
+        }
+    
+        try {
+            // Cập nhật kho hàng trang web
+            const response = await fetch(`${apiUrl}/Inventory/siteCode/${item.siteCode}/merchandiseCode/${item.merchandiseCode}/orderQuantity/${item.quantity}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+              
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to update order status.');
+            }
+    
+            const data = await response.json();
+            if (data.status === "error") {
+                throw new Error(data.message);
+            } else {
+                alert(`Cập nhật kho hàng thành công!`);
                 getCartStatus1();
             }
         } catch (error) {
@@ -61,12 +86,15 @@ const Inventory = () => {
             setErrorMessage('Error updating order status.');
         }
     };
-
+    
     useEffect(() => {
         getCartStatus1();
     }, []);
 
-    if (user?.role !== 0) {
+    if (user?.role === 1) {
+        return <InventorySite />;
+    }
+    else if (user?.role !== 0){
         return (
             <div className="page-container">
                 <h1>Bạn không có quyền truy cập</h1>
@@ -81,7 +109,8 @@ const Inventory = () => {
                 <thead>
                     <tr>
                         <th>STT</th>
-                        <th>Tên sản phẩm</th>
+                        <th>Mã sản phẩm</th>
+                        <th>Mã Site</th>
                         <th>Số lượng</th>
                         <th>Đơn vị</th>
                         <th>Thao tác</th>
@@ -91,11 +120,12 @@ const Inventory = () => {
                     {cartList.length > 0 ? cartList.map((item, index) => (
                         <tr key={index}>
                             <td>{index + 1}</td>
-                            <td>{item.productName}</td>
+                            <td>{item.merchandiseCode}</td>
+                            <td>{item.siteCode}</td>
                             <td>{item.quantity}</td>
                             <td>{item.unit}</td>
                             <td>
-                                <button onClick={() => { checkInventory(item.orderListId) }} className="btn btn-primary">Kiểm hàng</button>
+                                <button onClick={() => { checkInventory(item) }} className="btn btn-primary">Kiểm hàng</button>
                             </td>
                         </tr>
                     )) : (

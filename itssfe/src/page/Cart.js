@@ -3,13 +3,14 @@ import { apiUrl } from '../config/BeApiEndpoint';
 import { useUser } from '../UserContext';
 import '../css/PageGlobal.css';
 import '../css/Cart.css';
-import SockJS from 'sockjs-client';
-import { Client } from '@stomp/stompjs';
+
+import { useNavigate } from 'react-router-dom';
 const Cart = () => {
     const { user } = useUser();
     const [cartList, setCartList] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
-    const [stompClient, setStompClient] = useState(null);
+    
+    const navigate = useNavigate();
     
     const getCart = async () => {
         try {
@@ -39,27 +40,8 @@ const Cart = () => {
     }
 
     useEffect(() => {
-        const  socket = new SockJS('http://localhost:8080/itss');
-        const client = new Client({
-          webSocketFactory: () => socket,
-          debug: (str) => {
-            console.log(new Date(), str);
-          },
-          reconnectDelay: 5000,
-          heartbeatIncoming: 4000,
-          heartbeatOutgoing: 4000,
-        });
-        client.onConnect = () => {
-          console.log('Connected to WebSocket');
-          client.subscribe('/topic/orders', (message) => {
-            console.log('Received message:', message.body);
-            getCart();
-          });
-        };
-        client.activate();
-        setStompClient(client);
         getCart();
-    }, []);
+    })
 
     const handleCancelOrder = async (orderListId) => {
         try {
@@ -69,10 +51,7 @@ const Cart = () => {
                     'Content-Type': 'application/json',
                 },
             }).then(() => {});
-            stompClient.publish({
-                destination: '/topic/orders',
-                body: JSON.stringify({ orderListId }),
-            });
+            
             alert('Hủy đơn hàng thành công');
         } catch (error) {
             console.error('Error cancel order:', error);
@@ -121,6 +100,14 @@ const Cart = () => {
                         item.status === 0 && <button
                         onClick={()=> handleCancelOrder(item.orderListId)}
                         >Hủy hàng</button>
+                    }
+                    {
+                        item.status === 1 && <button onClick={()=>{
+                            navigate('/inventory', { state: { orderListId: item.orderListId } });
+                        }}>Kiểm hàng</button>
+                    }
+                    {
+            
                     }
                     </td>
                 </tr>

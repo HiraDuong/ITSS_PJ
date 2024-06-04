@@ -2,13 +2,13 @@ nav{
     margin-bottom: 20px;
 }
 nav ul{
-    list-style: none;
+    list-style-type: none;
     display: flex;
     justify-content: left;
     margin: 0;
     padding: 0;
     background-color: gray;
-
+  
 }
 nav li>a{
     text-decoration: none;

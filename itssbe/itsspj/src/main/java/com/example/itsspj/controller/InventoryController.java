@@ -4,6 +4,7 @@ import com.example.itsspj.model.Inventory;
 import com.example.itsspj.model.ResponseObject;
 import com.example.itsspj.model.Site;
 import com.example.itsspj.repositories.InventoryRepository;
+import com.example.itsspj.repositories.MerchandiseRepository;
 import com.example.itsspj.repositories.SiteRepository;
 import org.apache.juli.logging.Log;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ public class InventoryController {
     private InventoryRepository repository;
     @Autowired
     private SiteRepository siteRepository;
+    @Autowired
+    private MerchandiseRepository merchandiseRepository;
 //    get all inventory
     @GetMapping("")
     ResponseEntity<ResponseObject> getAllInventory(){
@@ -40,8 +43,20 @@ public class InventoryController {
     ResponseEntity<ResponseObject> getInventoryBySiteCode(@PathVariable Integer siteCode){
         List<Inventory> inventories = repository.findBySiteCode(siteCode);
 
+
         if (!inventories.isEmpty()) {
-            return ResponseEntity.status(200).body(new ResponseObject("Inventory found", "success", inventories));
+            List<Map<String, Object>> inventoryWithMerchandiseNames = new ArrayList<>();
+            inventories.forEach(inventory -> {
+                merchandiseRepository.findById(inventory.getMerchandiseCode()).ifPresent(merchandise -> {
+                    Map<String, Object> inventoryMap = new HashMap<>();
+                    inventoryMap.put("a", inventory);
+                    inventoryMap.put("b", merchandise.getName());
+                    inventoryWithMerchandiseNames.add(inventoryMap);
+                });
+            });
+
+
+            return ResponseEntity.status(200).body(new ResponseObject("Inventory found", "success", inventoryWithMerchandiseNames));
         } else {
             return ResponseEntity.status(404).body(new ResponseObject("Inventory not found with siteCode = " + siteCode, "error", null));
         }
@@ -164,6 +179,20 @@ ResponseEntity<ResponseObject> getInventoryAndSitesByMerchandiseCode(@PathVariab
                 .body(new ResponseObject("Inventory updated", "success", value)))
                 .orElseGet(() -> ResponseEntity.status(404).body(new ResponseObject("Inventory not found with id = " + id, "error", null)));
 
+    }
+
+//    update instock inventory by sitecode and merchandise code
+    @PutMapping("/siteCode/{siteCode}/merchandiseCode/{merchandiseCode}/orderQuantity/{orderQuantity}")
+    ResponseEntity<ResponseObject> updateInStockInventoryBySiteCodeAndMerchandiseCode(@PathVariable Integer siteCode, @PathVariable Integer merchandiseCode, @PathVariable Integer orderQuantity){
+        List<Inventory> inventories = repository.findBySiteCodeAndMerchandiseCode(siteCode, merchandiseCode);
+        if(inventories.size() > 0){
+            Inventory inventory = inventories.get(0);
+            inventory.setInStockQuantity(inventory.getInStockQuantity()-orderQuantity);
+            Inventory newInventory = repository.save(inventory);
+            return ResponseEntity.status(200).body(new ResponseObject("Inventory updated", "success", newInventory));
+        }else{
+            return ResponseEntity.status(404).body(new ResponseObject("Inventory not found with siteCode = " + siteCode + " and merchandiseCode = " + merchandiseCode, "error", null));
+        }
     }
 //delete inventory
     @DeleteMapping("/{id}")

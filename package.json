@@ -1,0 +1,23 @@
+{
+  "name": "itss_jp_2",
+  "version": "1.0.0",
+  "description": "itss_jp_2",
+  "gitrepository": "https://github.com/HiraDuong/itss_jp_2.git",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "nodemon index.js"
+  },
+  "author": "Hira",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mqtt": "^5.6.2",
+    "paho-mqtt": "^1.1.0",
+    "ws": "^8.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

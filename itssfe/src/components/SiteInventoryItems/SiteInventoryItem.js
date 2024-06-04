@@ -1,48 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import './SiteInventoryItem.css';
 import { apiUrl } from '../../config/BeApiEndpoint';
-import SockJS from 'sockjs-client';
-import { Client } from '@stomp/stompjs';
+
 import { useLocation } from 'react-router-dom';
 
 const SiteInventoryItem = ({ data }) => {
-  const [stompClient, setStompClient] = useState(null);
   const [expandedSite, setExpandedSite] = useState(null);
   const [orderForm, setOrderForm] = useState({ show: false, item: null });
   const location = useLocation();
 
   const merchandiseList = useMemo(() => location.state?.merchandiseList || [], [location.state?.merchandiseList]);
 
-  useEffect(() => {
-    // Kết nối tới server WebSocket qua STOMP
-    const socket = new SockJS('http://localhost:8080/itss');
-    const client = new Client({
-      webSocketFactory: () => socket,
-      debug: (str) => {
-        console.log(new Date(), str);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    });
 
-    client.onConnect = () => {
-      console.log('Connected to WebSocket');
-      client.subscribe('/topic/orders', (message) => {
-        console.log('Received message:', message.body);
-        // Thực hiện các hành động cần thiết khi nhận được thông điệp
-      });
-    };
-
-    client.activate();
-    setStompClient(client);
-
-    return () => {
-      if (client) {
-        client.deactivate();
-      }
-    };
-  }, []);
 
   const groupedData = data.reduce((acc, currentItem) => {
     const { site_code } = currentItem.site;
@@ -89,13 +58,6 @@ const SiteInventoryItem = ({ data }) => {
         throw new Error('Failed to submit order.');
       }
 
-      // Gửi thông điệp tới WebSocket
-      if (stompClient) {
-        stompClient.publish({
-          destination: '/topic/orders',
-          body: "New order has been submitted."
-        });
-      }
 
       // Đóng form
       alert('Đặt hàng thành công!');

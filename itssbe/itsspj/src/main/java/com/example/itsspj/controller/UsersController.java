@@ -3,8 +3,12 @@ package com.example.itsspj.controller;
 import com.example.itsspj.model.ResponseObject;
 import com.example.itsspj.model.Users;
 import com.example.itsspj.repositories.UsersRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +18,10 @@ import java.util.Optional;
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("api/v1/Users")
 public class UsersController {
+    private static final Logger log = LoggerFactory.getLogger(UsersController.class);
+    @Value("${salt_string}")
+    private String saltString;
+
     @Autowired private UsersRepository repository;
 //    get all users
     @GetMapping("")
@@ -39,20 +47,25 @@ public class UsersController {
 //    add user
     @PostMapping("")
     ResponseEntity<ResponseObject> addUsers(@RequestBody Users users){
-        List<Users> userss = repository.findByUsername(users.getUsername().trim());
-        if(userss.size() > 0){
+        List<Users> listUsers = repository.findByUsername(users.getUsername().trim());
+        if(listUsers.size() > 0){
             return ResponseEntity.status(501).body(new ResponseObject("Users already exists", "error", null));
         }
+        String hashedPassword = BCrypt.hashpw(users.getPassword(), saltString);
+        users.setPassword(hashedPassword);
         Users newUsers = repository.save(users);
         return ResponseEntity.status(201).body(new ResponseObject("Users added", "success", newUsers));
     }
 //    update users
     @PutMapping("/{id}")
     ResponseEntity<ResponseObject> updateUsers(@PathVariable int id, @RequestBody Users users){
+        log.warn("salt"+BCrypt.gensalt());
         Optional<Users> usersData = Optional.of(repository.findById(id)
                 .map(users1 -> {
                     users1.setUsername(users.getUsername());
-                    users1.setPassword(users.getPassword());
+                    String hashedPassword = BCrypt.hashpw(users.getPassword(), saltString);
+
+                    users1.setPassword( hashedPassword);
                     users1.setRole(users.getRole());
                     return repository.save(users1);
                 }).orElseGet(()->

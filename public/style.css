@@ -1,0 +1,72 @@
+#select{
+    width: 200px;
+    font-size: 30px;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+
+}
+#select option{
+
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 20px;
+    text-align: center;
+    padding: 0;
+}
+
+.btn{
+    border-radius: 20px;
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    width: 150px;
+}
+#Gbtn{
+    background-color: #4CAF50;
+}
+#Rbtn{
+    background-color: #cb362b;
+}
+#Ybtn{
+    background-color: #ddb71e;
+}
+
+#Gbtn:hover {
+    background-color: #00ff08;
+}
+#Rbtn:hover {
+    background-color: #ff1100;
+}
+#Ybtn:hover {
+    background-color: #ffcc01;
+}
+ul {
+    list-style-type: none; /* Ẩn marker của danh sách */
+}
+li{
+    font-size: 30px;
+    font-weight: bolder;
+    color: #00c1f1;
+}
+li:before {
+    content: none; /* Ẩn marker của mỗi mục trong danh sách */
+}
+
+.info{
+    text-decoration: none;
+    display: inline-block;
+    font-size: 20px;
+    color:green;
+    text-align: center;
+    width: 150px;
+    margin-top: 10px;
+}
