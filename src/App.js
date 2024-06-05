@@ -1,25 +1,23 @@
-import logo from './logo.svg';
 import './App.css';
 import React from "react";
-import { useLocation } from "react-router-dom";
 
 import {
-  BrowserRouter as Router,
   Route,
   Routes,
-  Switch,
+  
 } from "react-router-dom";
 import Login from './page/Login';
 import Nav from './components/Nav/Nav';
 import Home from './page/Home';
 import Register from './page/Register';
-import SearchMerchandise from './components/SearchMerchandise/SearchMerchandise';
-import MerchandiseItem from './components/MerchandiseItem/MerchandiseItem';
+
 import Order from './page/Order';
 import SiteInventoryItem from './components/SiteInventoryItems/SiteInventoryItem';
 
 import data from './config/tesData';
 import CheckOrder from './page/CheckOrder';
+import Cart from './page/Cart';
+import Inventory from './page/Inventory';
 function App() {
   return (
     <div className="App">
@@ -36,6 +34,10 @@ function App() {
             <Route path="/order" element={<Order />} />
           {/* Check Order  */}
             <Route path="/checkOrder" element={<CheckOrder />} />
+            {/*Cart  */}
+            <Route path="/cart" element={<Cart />} />
+            {/* Inventory */}
+            <Route path="/inventory" element={<Inventory />} />
           {/* test component */}
             <Route path="/test" element={<SiteInventoryItem data = {data}/>} />
         

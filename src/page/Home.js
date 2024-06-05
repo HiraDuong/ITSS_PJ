@@ -11,26 +11,30 @@ import HomeSiteRole from '../components/HomeSiteRole/HomeSiteRole';
 const Home = () => {
     const { user } = useUser();
     const [searchResults, setSearchResults] = useState([]);
-    const navigate = useNavigate();
     const [merchandiseList, setMerchandiseList] = useState([]);
-    const [inputValues, setInputValues] = useState({});  
-
+    const [deliveryDates, setDeliveryDates] = useState({});
+    const [quantities, setQuantities] = useState({});
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
     
+    const today = new Date().toISOString().split('T')[0]; // Lấy ngày hôm nay
 
     useEffect(() => {
         console.log("merchandiseList", merchandiseList);
     }, [merchandiseList]);
 
     const addMerchandiseToList = (merchandise) => {
-        if (merchandise.deliveryDate) {
-            if (merchandiseList.some(item => item.merchandise_code === merchandise.merchandise_code)) {
-                alert('Mặt hàng này đã được thêm vào danh sách.');
-            } else {
-                setMerchandiseList((prevList) => [...prevList, merchandise]);
-                alert('Đã thêm mặt hàng vào danh sách.');
-            }
+        if (!merchandise.deliveryDate) {
+            setError('Vui lòng nhập ngày giao hàng!');
+            return;
+        }
+
+        if (merchandiseList.some(item => item.merchandise_code === merchandise.merchandise_code)) {
+            setError('Mặt hàng này đã được thêm vào danh sách.');
         } else {
-            alert('Vui lòng nhập ngày giao hàng!');
+            setMerchandiseList((prevList) => [...prevList, merchandise]);
+            setError('');
+            alert('Đã thêm mặt hàng vào danh sách.');
         }
     };
 
@@ -38,8 +42,18 @@ const Home = () => {
         setMerchandiseList((prevList) => prevList.filter(item => item.merchandise_code !== merchandise.merchandise_code));
     };
 
-    const handleInputChange = (merchandiseCode, value) => {
-        setInputValues((prevValues) => ({ ...prevValues, [merchandiseCode]: value }));
+    const handleDeliveryDateChange = (merchandiseCode, value) => {
+        setDeliveryDates((prevValues) => ({ ...prevValues, [merchandiseCode]: value }));
+    };
+
+    const handleQuantityChange = (merchandiseCode, value) => {
+        const quantity = parseInt(value, 10);
+
+        if (!isNaN(quantity) && quantity >= 1) {
+            setQuantities((prevValues) => ({ ...prevValues, [merchandiseCode]: quantity }));
+        } else {
+            setError('Giá trị nhập vào không hợp lệ');
+        }
     };
 
     const handleSubmit = () => {
@@ -49,15 +63,10 @@ const Home = () => {
         XLSX.writeFile(wb, 'merchandise_list.xlsx');
         alert('Đã tạo danh sách và lưu vào file Excel');
         navigate('/order', { state: { merchandiseList: merchandiseList } });
-        
     };
-    
-    const today = new Date().toISOString().split('T')[0]; // Lấy ngày hôm nay
-
-  
 
     if (user?.role === 1) {
-        return <HomeSiteRole/>
+        return <HomeSiteRole />;
     }
 
     if (user?.role === 0) {
@@ -71,10 +80,12 @@ const Home = () => {
                             <div className='merchandise-item-list' key={merchandise.merchandise_code}>
                                 <MerchandiseItem merchandise={merchandise} />
                                 <button className='add-btn' onClick={() => {
-                                    const inputValue = inputValues[merchandise.merchandise_code]||today;
+                                    const deliveryDate = deliveryDates[merchandise.merchandise_code] || today;
+                                    const quantity = quantities[merchandise.merchandise_code] || 1;
                                     const merchandiseOrder = {
                                         ...merchandise,
-                                        deliveryDate: inputValue,
+                                        deliveryDate: deliveryDate,
+                                        quantity: quantity,
                                     };
                                     addMerchandiseToList(merchandiseOrder);
                                 }}>Thêm</button>
@@ -82,14 +93,22 @@ const Home = () => {
                                 <input
                                     type='date'
                                     min={today} // Đặt ngày nhỏ nhất là ngày hôm nay
-                                    value={inputValues[merchandise.merchandise_code]||today}
-                                    onChange={(e) => handleInputChange(merchandise.merchandise_code, e.target.value)}
+                                    value={deliveryDates[merchandise.merchandise_code] || today}
+                                    onChange={(e) => handleDeliveryDateChange(merchandise.merchandise_code, e.target.value)}
+                                />
+                                <input
+                                    type='number'
+                                    min={1}
+                                    value={quantities[merchandise.merchandise_code] || ""}
+                                    onChange={(e) => handleQuantityChange(merchandise.merchandise_code, e.target.value)}
+                                    required
                                 />
                             </div>
                         ))
                     ) : (
                         <p>Không tìm thấy kết quả.</p>
                     )}
+                    {error && <p className='error-message'>{error}</p>}
                     <button className='submit-btn' onClick={handleSubmit}>Hoàn tất</button>
                 </div>
             </div>
@@ -106,6 +125,6 @@ const Home = () => {
     }
 
     return null;
-}
+};
 
 export default Home;

@@ -69,3 +69,8 @@ h1,h2,p,h3{
 
     padding: 0;
 }
+table th {
+    background-color: #007f6e;
+    color: white;
+    padding: 8px;
+}

@@ -14,8 +14,20 @@ const Nav = () => {
             {user ? (
                 <ul>
                 <li><Link to="/">Trang chủ</Link></li>
-                {user?.role ===0 ?(<li><Link to="/order">Đặt hàng</Link></li>):<li><Link to="/checkOrder">Kiểm tra đơn nhận</Link></li>}
-                <li><Link to="/inventory">Kiểm hàng</Link></li>
+                {user?.role === 0 ? (
+    <>
+        {/* <li><Link to="/order">Đặt hàng</Link></li> */}
+        <li><Link to="/cart">Giỏ hàng</Link></li>
+        <li><Link to="/inventory">Kiểm hàng</Link></li>
+
+    </>
+) : (
+    <>
+    <li><Link to="/checkOrder">Kiểm tra đơn nhận</Link></li>
+    <li><Link to="/inventory">Kiểm tra kho hàng</Link></li>
+    </>
+)}
+
                 <li><Link to="#" onClick={handleLogout}>Đăng xuất</Link></li>
                 </ul>
             ) : (

@@ -1,0 +1,30 @@
+.inventory-site {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+
+.inventory-site table {
+  border-collapse: collapse;
+  width: 600px;
+  margin-top: 20px;
+}
+.inventory-site th {
+  background-color: #007f6e;
+  color: white;
+ 
+}
+.inventory-site td {
+
+  text-align: center;
+  padding: 10px;
+}
+.inventory-site tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+.inventory-site tr:hover {
+  background-color: #ddd;
+}

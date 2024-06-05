@@ -1,31 +1,31 @@
-.site-table {
+.home-site-role .site-table {
     width: 500px;
     border-collapse: collapse;
     margin: 20px 0;
 }
 
-.site-table th, .site-table td {
+.home-site-role .site-table th, .home-site-role .site-table td {
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-.site-table th {
-    background-color: #f2f2f2;
+.home-site-role .site-table th {
+    background-color: #007f6e;
     text-align: left;
 }
 
-.site-table tr{
+.home-site-role .site-table tr{
     cursor: pointer;
 }
-.site-table tr:nth-child(even) {
+.home-site-role .site-table tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-.site-table tr:hover {
+.home-site-role .site-table tr:hover {
     background-color: #ddd;
 }
-.site-table button{
-    background-color: #4CAF50;
+.home-site-role .site-table button{
+    background-color: #007f6e;
     color: white;
     padding: 14px 20px;
     margin: 8px 0;
@@ -34,7 +34,7 @@
     border-radius: 5px
 }
 .home-site-role button{
-    background-color: #4CAF50;
+    background-color: #007f6e;
     color: white;
     padding: 14px 20px;
     margin: 10px ;
